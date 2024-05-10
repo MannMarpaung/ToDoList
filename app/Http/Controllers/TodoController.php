@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\Todo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TodoController extends Controller
 {
@@ -14,7 +15,7 @@ class TodoController extends Controller
     public function index()
     {
 
-        $todo = Todo::all();
+        $todo = Todo::where('user_id', auth()->user()->id)->latest()->get();
 
         return view('todolist.index', compact('todo'));
 
@@ -42,14 +43,17 @@ class TodoController extends Controller
             $data = $request->all();
 
             $data['status'] = false;
+            $data['user_id'] = Auth::user()->id;
 
-            Todo::create($data);
+            $todo = Todo::create($data);
+
+            // dd($todo);
 
             return redirect()->back();
             
         } catch(Exception $e) {
-            // dd($e->getMessage());
-            return redirect()->back();
+            dd($e->getMessage());
+            // return redirect()->back();
         }
     }
 
@@ -66,7 +70,9 @@ class TodoController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $todo = Todo::findOrFail($id);
+
+        return view('todolist.edit', compact('todo'));
     }
 
     /**
@@ -74,7 +80,26 @@ class TodoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $this->validate($request, [
+            'todo' => 'required'
+        ]);
+
+        try {
+
+            $todo = Todo::find($id);
+
+            $data = $request->all();
+
+            $data['status'] = $request->has('status') ? true : false;
+
+            $todo->update($data);
+
+            return redirect()->route('todolist.index');
+            
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+            return redirect()->route('todolist.index');
+        }
     }
 
     /**
@@ -82,6 +107,17 @@ class TodoController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            
+            $todo = Todo::find($id);
+
+            $todo->delete();
+
+            return redirect()->back();
+
+        } catch(Exception $e) {
+            // dd($e->getMessage());
+            return redirect()->back();
+        }
     }
 }

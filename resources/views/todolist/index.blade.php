@@ -15,18 +15,25 @@
     <div class="d-flex align-items-center flex-column px-5">
 
         <div class="my-3 w-100 d-flex justify-content-end">
-            @csrf
-            <form action="{{ route('logout') }}" method="post">
+            <form action="{{ route('logout') }}" method="post">\
+                @csrf
                 <button class="btn text-white" type="submit">Logout</button>
             </form>
         </div>
 
         <h1 class="title fw-bold text-white">Add Your To Do</h1>
 
-        <div class="my-4 bg-info-subtle w-75 justify-content-center d-flex rounded-5 align-items-center"
-            style="height: 9rem">
-            <input type="text" class="rounded-5 text-center" style="width: 85%;height: 65%; font-size: 1.4rem">
-        </div>
+        <form action="{{ route('todolist.store') }}" method="post"
+            class="bg-info-subtle rounded-5 d-flex flex-column justify-content-between p-3 my-3"
+            style="width: 80%; height: 13rem;">
+            @csrf
+            @method('POST')
+            <input type="text" name="todo" class="rounded-5 text-center"
+                style="width: 100%; height: 70%; font-size: 1.5rem">
+            <button class="btn btn-primary" type="submit">
+                Add
+            </button>
+        </form>
 
         <h1 class="title fw-bold text-white">Your To Do List</h1>
 
@@ -41,19 +48,31 @@
             </thead>
             <tbody>
                 @forelse ($todo as $row)
-                <tr>
-                    <td>$loop->iteration</td>
-                    <td>$todo->todo</td>
-                    <td>$todo->status</td>
-                    <td>
-                        <button class="btn btn-danger">
-                            Del
-                        </button>
-                    </td>
-                </tr>
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ $row->todo }}</td>
+                        <td>
+                            @if ($row->status == false)
+                                Belum Selesai
+                            @else
+                                Sudah Selesai
+                            @endif
+                        <td class="d-flex justify-content-evenly">
+                            <a href="{{ route('todolist.edit', $row->id) }}" class="btn btn-warning" id="edit">
+                                Update
+                            </a>
+                            <form action="{{ route('todolist.destroy', $row->id) }}" method="post">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-danger">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
                 @empty
                     <tr>
-                        <td colspan="3" class="text-center">Data Is Empty</td>
+                        <td colspan="4" class="text-center">Data Is Empty</td>
                     </tr>
                 @endforelse
             </tbody>
